@@ -21,10 +21,8 @@ class Shlyuz(object):
         super(Shlyuz, self).__init__()
 
         # Declare our variables to run
-        self.addr = args['address']
-        self.port = args['port']
         self.logging = logging.Logging(args['debug'])
-        self.logging.log("Starting Shlyuz teamserver")
+        self.logging.log("Starting Shlyuz")
 
         # Load our config
         self.logging.log(f"Loading Shlyuz config from {args['config']}", level='debug')
@@ -47,8 +45,30 @@ class Shlyuz(object):
         self.listener_count = len(self.listeners)
         self.current_listener = None
 
-        # Console class init
-        self.teamserver = teamserver.Teamserver(self.logging)
+    # Not currently used
+    # def start(self):
+    # shlyuz = Shlyuz(args)
+    # TODO: Start the listener interaction thread(s)
+    # Gotta figure out how this is gonna work first
+    # Plan is to start listener interactions, gather metadata from them (about the state of the implants), \
+    # then start the console, which after the banner prints but before the console starts should print info about \
+    # the current state of the entire shlyuz framework
+
+    # TODO: Print stats from the listener manifests
+
+
+class Shlyuz_Teamserver(object):
+    def __init__(self, args):
+        super(Shlyuz_Teamserver, self).__init__()
+
+        self.config = args['config']
+        self.logging = logging.Logging(args['debug'])
+        self.logging.log("Starting Shlyuz Teamserver", source="teamserver_init")
+        self.addr = args['address']
+        self.port = args['port']
+
+        self.logging.log("Starting Shlyuz teamserver flask thread", level="debug")
+        self.teamserver = teamserver.Teamserver(self)
 
     def start(self):
         """
@@ -56,30 +76,28 @@ class Shlyuz(object):
 
         :return:
         """
-        shlyuz = Shlyuz(args)
 
         # start banner
         banner.Banner()
 
-        # TODO: Start the listener interaction thread(s)
-        # Gotta figure out how this is gonna work first
-        # Plan is to start listener interactions, gather metadata from them (about the state of the implants), \
-        # then start the console, which after the banner prints but before the console starts should print info about \
-        # the current state of the entire shlyuz framework
-
-        # TODO: Print stats from the listener manifests
+        # Teamserver class init
 
         # Start the teamserver
         # asyncio.run(self.teamserver.start(self.logging))
-        self.logging.log("Starting Shlyuz teamserver flask thread", level="debug")
-        teamserver_thread = Thread(target=self.teamserver.start_teamserver, args=(shlyuz,))
+
+        teamserver_thread = Thread(target=self.teamserver.start_teamserver, args=(self,))
         teamserver_thread.daemon = True
         teamserver_thread.start()
         self.logging.log("Started Shlyuz teamserver")
 
-        while True: pass
+        # Create our teamserver object
+        self.shlyuz = Shlyuz(args)
 
+        # Give shlyuz and instance of the teamserver
+        self.shlyuz.teamserver = self
 
+        while True:
+            pass
 
 
 if __name__ == '__main__':
@@ -94,5 +112,6 @@ if __name__ == '__main__':
     # parse the args
     args = vars(parser.parse_args())
 
-    shlyuz = Shlyuz(args)
-    shlyuz.start()
+    shlyuz_teamserver = Shlyuz_Teamserver(args)
+    # shlyuz.start() # not currently used
+    shlyuz_teamserver.start()
