@@ -1,13 +1,14 @@
 import configparser
 
 class ConfigParse(object):
-    def __init__(self, arg):
+    def __init__(self, config_file):
         self.info = {"name": "configparse",
                      "author": "und3rf10w"}
         super(ConfigParse, self).__init__()
 
-        self.config_file = arg
+        self.config = self.read_config(config_file)
 
-    def init(self):
+    def read_config(self, config_file):
         config = configparser.ConfigParser()
-        config.read(self.config_file)
+        config.read(config_file)
+        return config

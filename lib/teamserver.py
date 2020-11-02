@@ -13,9 +13,6 @@ class Teamserver(object):
                      }
         super(Teamserver, self).__init__()
 
-        # TODO: This is dumb, make this part of the global config
-        self.authstring = "5243654tgbrhebs-tgr5ehjntdhyu563whtaghw65hrtagr.g5h7e6w5hert63"
-
     @app.route("/")
     def teamserver_base():
         teamserver.logging.log("hit on /", source="teamserver")
@@ -39,14 +36,59 @@ class Teamserver(object):
         teamserver.logging.log(f"Authentication attempt from {flask.request.remote_addr} for user {data['username']}",
                                source=f"{teamserver.teamserver.info['name']}")
 
-        if base64.b64decode(authstring).decode("utf-8") == teamserver.teamserver.authstring:
+        if base64.b64decode(authstring).decode("utf-8") == teamserver.config['authstring']:
             teamserver.logging.log(f"Authenticated {data['username']} from {flask.request.remote_addr}",
                              source=f"{teamserver.teamserver.info['name']}")
             success = True
-            return "login_ok"
         else:
-            error = False
-            return "login_failed"
+            teamserver.logging.log(f"Authentication Failed for {data['username']} from {flask.request.remote_addr}",
+                                   source=f"{teamserver.teamserver.info['name']}")
+            success = False
+
+        response = {"success": success, "error": error }
+        if success and username:
+            response['username'] = username
+            auth_cookie = base64.b64encode(f"{username} `|` {authstring}".encode('utf-8'))
+
+        res = flask.make_response(flask.jsonify(response))
+        if success: res.set_cookie('Auth', auth_cookie)
+        return res
+
+    @app.route("/cmd", methods=["POST"])
+    def teamserver_run_cmd():
+        """
+        Run a command on an implant
+
+        :return:
+        """
+
+        error = False
+        success = False
+
+        response = {"success": False}
+
+        # Get the cookie
+        try:
+            cookie = flask.request.cookies.get("Auth")
+            username, recv_authstring = base64.b64decode(cookie).decode('utf-8').split(" `|` ")
+            if base64.b64decode(recv_authstring).decode("utf-8") == teamserver.config['authstring']:
+                # Process the command
+                data = flask.request.get_json(force=True)
+                teamserver.logging.log(f"Received {data['cmd']}, from {username}, for implant {data['id']}",
+                                       level="debug", source=f"{teamserver.teamserver.info['name']}")
+                teamserver.config()
+
+            else:
+                # Our auth string didn't match
+                error = True
+        except Exception:
+            error = True
+
+        return response
+
+    def validate_cookie(self, cookie):
+        print(cookie)
+
 
     def start_teamserver(self, *args):
         global teamserver

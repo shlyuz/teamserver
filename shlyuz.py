@@ -9,6 +9,7 @@ from lib import teamserver
 from lib import logging
 from lib import banner
 from lib import configparse
+from lib import handler
 
 
 class Shlyuz(object):
@@ -26,7 +27,7 @@ class Shlyuz(object):
 
         # Load our config
         self.logging.log(f"Loading Shlyuz config from {args['config']}", level='debug')
-        # self.config = configparse.ConfigParse(args['config']) #TODO: Reenable me
+        self.config = configparse.ConfigParse(args['config'])
         self.logging.log(f"Loaded Shlyuz config", level='debug')
 
         # framework vars
@@ -61,11 +62,11 @@ class Shlyuz_Teamserver(object):
     def __init__(self, args):
         super(Shlyuz_Teamserver, self).__init__()
 
-        self.config = args['config']
         self.logging = logging.Logging(args['debug'])
         self.logging.log("Starting Shlyuz Teamserver", source="teamserver_init")
         self.addr = args['address']
         self.port = args['port']
+        self.config = args['config']['teamserver']
 
         self.logging.log("Starting Shlyuz teamserver flask thread", level="debug")
         self.teamserver = teamserver.Teamserver(self)
@@ -81,6 +82,11 @@ class Shlyuz_Teamserver(object):
         banner.Banner()
 
         # Teamserver class init
+        # Create our teamserver object
+        self.shlyuz = Shlyuz(args)
+
+        # Start our input handler
+        self.handler = handler.Handler(self.shlyuz)
 
         # Start the teamserver
         # asyncio.run(self.teamserver.start(self.logging))
@@ -90,10 +96,7 @@ class Shlyuz_Teamserver(object):
         teamserver_thread.start()
         self.logging.log("Started Shlyuz teamserver")
 
-        # Create our teamserver object
-        self.shlyuz = Shlyuz(args)
-
-        # Give shlyuz and instance of the teamserver
+        # Give shlyuz an instance of the teamserver
         self.shlyuz.teamserver = self
 
         while True:
@@ -112,6 +115,7 @@ if __name__ == '__main__':
     # parse the args
     args = vars(parser.parse_args())
 
+    shlyuz = Shlyuz(args)  # not currently used
+    args['config'] = shlyuz.config.config
     shlyuz_teamserver = Shlyuz_Teamserver(args)
-    # shlyuz.start() # not currently used
     shlyuz_teamserver.start()

@@ -30,3 +30,9 @@ venv/
 
 # No cache
 lib/__pycache__/
+
+# Shlyuz config
+config/shlyuz.conf
+
+# Removing apple bullshit
+.DS_Store
