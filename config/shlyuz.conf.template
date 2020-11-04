@@ -1,0 +1,7 @@
+[teamserver]
+# The authentication string used by the operator to connect to the teamserver
+authstring = ayylamo
+
+[listeningpost_XXXX]
+# where XXXX is any unique identifier that also matches the below identifier attribute
+identifier = XXXX

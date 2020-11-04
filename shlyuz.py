@@ -99,6 +99,10 @@ class Shlyuz_Teamserver(object):
         # Give shlyuz an instance of the teamserver
         self.shlyuz.teamserver = self
 
+        # TODO: logic here to retrieve listening post manifests
+
+        # TODO: Logic here to output and update stats about environment from listener manifests
+
         while True:
             pass
 

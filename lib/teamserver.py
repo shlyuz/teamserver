@@ -7,7 +7,7 @@ app = flask.Flask(__name__)
 
 
 class Teamserver(object):
-    def __init__(self, arg):
+    def __init__(self, args):
         self.info = {"name": "teamserver",
                      "author": "und3rf10w"
                      }
