@@ -100,6 +100,7 @@ class Shlyuz_Teamserver(object):
         self.shlyuz.teamserver = self
 
         # TODO: logic here to retrieve listening post manifests
+        self.logging.log("Retrieving listening post manifests")
 
         # TODO: Logic here to output and update stats about environment from listener manifests
 

@@ -95,6 +95,7 @@ class Teamserver(object):
 
         teamserver = args[0]
 
+
         try:
             app.run(host=teamserver.addr, port=teamserver.port)
         except Exception as e:
