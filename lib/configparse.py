@@ -9,6 +9,6 @@ class ConfigParse(object):
         self.config = self.read_config(config_file)
 
     def read_config(self, config_file):
-        config = configparser.ConfigParser()
+        config = configparser.RawConfigParser()
         config.read(config_file)
         return config

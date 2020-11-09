@@ -2,6 +2,11 @@
 # The authentication string used by the operator to connect to the teamserver
 authstring = ayylamo
 
+[crypto]
+# Values used for the cryptography libraries
+rc6_key = DEADBEEFBAADF00D # 16 byte cryptographic string used for rc6 encryption
+xor_key = 0x38 Hex digit used for xor encoding
+
 [listeningpost_XXXX]
 # where XXXX is any unique identifier that also matches the below identifier attribute
 identifier = XXXX
