@@ -6,7 +6,9 @@ authstring = ayylamo
 # Values used for the cryptography libraries
 rc6_key = DEADBEEFBAADF00D # 16 byte cryptographic string used for rc6 encryption
 xor_key = 0x38 Hex digit used for xor encoding
+private_key = b'xxxxxxxxx'
 
 [listeningpost_XXXX]
 # where XXXX is any unique identifier that also matches the below identifier attribute
 identifier = XXXX
+public_key = b'xxxxxxxxxxxxxxx' # The public key for the listening post
