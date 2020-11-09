@@ -144,10 +144,6 @@ def encrypt(key, byte_data):
 
     chunk = [byte_string[i:i + 16] for i in range(0, len(byte_string), 16)]
 
-    key = key + " " * (16 - len(key))
-
-    key = key[:16]
-
     s = generate_key(key)
 
     # create list of chunks of length 16, encoded
