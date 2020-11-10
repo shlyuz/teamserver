@@ -11,7 +11,7 @@ import lib.crypto.xor
 import lib.crypto.asymmetric
 
 
-def connect_to_listening_post_socket(addr, port):
+def listen_on_management_socket(addr, port):
     """
     Creates our management socket to interact with the teamserver
     :param addr:
@@ -19,7 +19,7 @@ def connect_to_listening_post_socket(addr, port):
     :return:
     """
     management_channel = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    management_channel.connect(addr, port)
+    management_channel.connect((addr, port))
     return management_channel
 
 
@@ -108,6 +108,7 @@ def uncook_transmit_frame(teamserver, frame):
     teamserver.logging.log(f"rc6 key: {rc6_key}", level="debug", source="lib.networking")
     unxord_frame = lib.crypto.xor.single_byte_xor(transmit_frame,
                                                   teamserver.config.config['crypto']['xor_key'])
+    del transmit_frame
     unenc_frame = lib.crypto.hex_encoding.decode_hex(unxord_frame)
     del unxord_frame
     unsorted_recv_frame = pickle.loads(binascii.unhexlify(unenc_frame[44:]))
@@ -120,7 +121,6 @@ def uncook_transmit_frame(teamserver, frame):
         data_list.append(sorted_frames[data_index]['data'])
 
     # Symmetric decryption routine
-    # TODO: Extract the rc6 key
     decrypted_data = lib.crypto.rc6.decrypt(rc6_key, data_list)
     teamserver.logging.log(f"Decrypted data: {decrypted_data}", level="debug", source="lib.networking")
 

