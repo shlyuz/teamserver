@@ -11,16 +11,17 @@ import lib.crypto.xor
 import lib.crypto.asymmetric
 
 
-def listen_on_management_socket(addr, port):
+def listen_on_listener_socket(addr, port):
     """
-    Creates our management socket to interact with the teamserver
+    Creates our listener socket to interact with listening posts
     :param addr:
     :param port:
     :return:
     """
-    management_channel = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    management_channel.connect((addr, port))
-    return management_channel
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as management_channel:
+        management_channel.bind((addr, port))
+        management_channel.listen()
+        return management_channel
 
 
 def send_management_frame(teamserver, data):
@@ -42,10 +43,6 @@ def recv_management_frame(teamserver):
     chunk = teamserver.teamserver.management_socket.recv(slen)
     while len(chunk) < slen:
         chunk = chunk + teamserver.teamserver.management_socket.recv(slen - len(chunk))
-
-
-def kill_management_socket(teamserver):
-    teamserver.teamserver.management_socket.close()
 
 
 def cook_transmit_frame(teamserver, data):

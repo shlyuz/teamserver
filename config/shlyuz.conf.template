@@ -1,6 +1,12 @@
 [teamserver]
 # The authentication string used by the operator to connect to the teamserver
 authstring = ayylamo
+# The address and port used by the teamserver's webserver for connections from an operator console
+http_addr = 0.0.0.0
+http_port = 8080
+# The address and port used for the socket to communicate with listeners
+l_addr = 0.0.0.0
+l_port = 8081
 
 [crypto]
 # Values used for the cryptography libraries

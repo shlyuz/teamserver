@@ -10,6 +10,7 @@ from lib import logging
 from lib import banner
 from lib import configparse
 from lib import handler
+from lib import networking
 
 
 class Shlyuz(object):
@@ -34,28 +35,7 @@ class Shlyuz(object):
         self.variables = {}
 
         # callback endpoint
-        # self.callback = args['callback'] #TODO: Implement me
-
-        # Implant runtime vars
-        self.implants = {}
-        self.implant_count = len(self.implants)
-        self.current_implant = None
-
-        # Listener runtime vars
-        self.listeners = {}
-        self.listener_count = len(self.listeners)
-        self.current_listener = None
-
-    # Not currently used
-    # def start(self):
-    # shlyuz = Shlyuz(args)
-    # TODO: Start the listener interaction thread(s)
-    # Gotta figure out how this is gonna work first
-    # Plan is to start listener interactions, gather metadata from them (about the state of the implants), \
-    # then start the console, which after the banner prints but before the console starts should print info about \
-    # the current state of the entire shlyuz framework
-
-    # TODO: Print stats from the listener manifests
+        # self.callback = args['callback'] #TODO: Implement me if we're gonna use this... Likely not
 
 
 class Shlyuz_Teamserver(object):
@@ -64,12 +44,46 @@ class Shlyuz_Teamserver(object):
 
         self.logging = logging.Logging(args['debug'])
         self.logging.log("Starting Shlyuz Teamserver", source="teamserver_init")
-        self.addr = args['address']
-        self.port = args['port']
         self.config = args['config']['teamserver']
+        self.http_addr = self.config['http_addr']
+        self.http_port = self.config['http_port']
+
+        # Implant runtime vars
+        self.implants = {}
+        self.implant_count = len(self.implants)
+        self.current_implant = None  # used for operator console
+
+        # Listener runtime vars
+        self.listeners = {}
+        self.listener_count = len(self.listeners)
+        self.current_listener = None  # used for operator console
+
+        # Starts the listener socket
+        self.logging.log("Starting Shlyuz teamserver listener socket", level="debug", source="teamserver_init")
+        self.listener_socket = networking.listen_on_listener_socket(self.config['l_addr'], self.config['l_port'])
 
         self.logging.log("Starting Shlyuz teamserver flask thread", level="debug")
         self.teamserver = teamserver.Teamserver(self)
+
+    async def get_manifests(self):
+        return 0  # TODO: Remove me
+        # shlyuz = Shlyuz(args)
+        # TODO: Start the listener interaction thread(s)
+        # Gotta figure out how this is gonna work first
+        # Plan is to start listener interactions, gather metadata from them (about the state of the implants), \
+        # then start the console, which after the banner prints but before the console starts should print info about \
+        # the current state of the entire shlyuz framework
+
+        # TODO: Start listener interaction socket
+        #  * Send out manifest requests to configured listening posts
+        #  * As responses are returned, update self.listeners with the manifests
+        #  * As listener manifests are returned, extract implant manifests, update self.listeners with the manifests
+        #  * Now you have a map of implant -> listening_post which can be cross references against self.listeners and \
+        #    self.implants
+        #  * async loop to periodically update self.implant_count and self.listener_count
+        #  * Let the listener interaction socket continue
+
+    # TODO: Print stats from the listener manifests
 
     def start(self):
         """
@@ -88,8 +102,8 @@ class Shlyuz_Teamserver(object):
         # Start our input handler
         self.handler = handler.Handler(self.shlyuz)
 
-        # Start the teamserver
-        # asyncio.run(self.teamserver.start(self.logging))
+        # Get the manifest(s) from the listening post(s)
+        # asyncio.run(self.get_manifests())
 
         teamserver_thread = Thread(target=self.teamserver.start_teamserver, args=(self,))
         teamserver_thread.daemon = True
@@ -110,8 +124,6 @@ class Shlyuz_Teamserver(object):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='shlyuz')
-    parser.add_argument("-a", "--address", required=False, default="0.0.0.0", help="Address to listen on")
-    parser.add_argument("-p", "--port", required=False, default=8080, help="Port to bind to")
     parser.add_argument("-d", "--debug", required=False, default=False, action="store_true",
                         help="Enable debug logging")
     parser.add_argument("-c", "--config", required=False, default="config/shlyuz.conf",
@@ -120,6 +132,7 @@ if __name__ == '__main__':
     # parse the args
     args = vars(parser.parse_args())
 
+    global shlyuz
     shlyuz = Shlyuz(args)  # not currently used
     args['config'] = shlyuz.config.config
     shlyuz_teamserver = Shlyuz_Teamserver(args)

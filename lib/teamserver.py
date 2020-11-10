@@ -101,8 +101,7 @@ class Teamserver(object):
         teamserver = args[0]
 
         try:
-            # teamserver.management_socket = networking.listen_on_management_socket() # TODO: Figure out where this goes
-            app.run(host=teamserver.addr, port=teamserver.port)
+            app.run(host=teamserver.http_addr, port=teamserver.http_port)
         except Exception as e:
             teamserver.logging.log(f"Critical error when starting teamserver api server", level="critical",
                                    source=f"{teamserver.teamserver.info['name']}")
