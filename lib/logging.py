@@ -41,6 +41,6 @@ class Logging(object):
             log_level = logging.DEBUG
 
         if source:
-            logging.log(log_level, msg=f"{source.upper()}: {msg}")
+            logging.log(log_level, msg=f"{time.strftime('%Y/%m/%d %H:%M:%S', time.gmtime())} [{source.upper()}]: {msg}")
         else:
-            logging.log(log_level, msg=f"{msg}")
+            logging.log(log_level, msg=f"{time.strftime('%Y/%m/%d %H:%M:%S', time.gmtime())}: {msg}")

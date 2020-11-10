@@ -1,6 +1,7 @@
 import base64
 import asyncio
 import flask
+import json
 
 from lib import networking
 from lib import instructions
@@ -16,10 +17,23 @@ class Teamserver(object):
                      }
         super(Teamserver, self).__init__()
 
+    def make_response(self):
+        # Every response will be processed here, used to set headers
+        response = flask.make_response()
+        response.headers['Server'] = teamserver.config['server_header']
+        return response
+
     @app.route("/")
-    def teamserver_base():
+    def teamserver_root():
         teamserver.logging.log("hit on /", source="teamserver")
-        return "Попрешь на крутых, уроем как остальных"
+        # TODO: Support flask template rendering instead of a string
+        response = teamserver.teamserver.make_response()
+        try:
+            response.set_data(teamserver.config['root_return_string'])
+            return response
+        except KeyError:
+            response.set_data("Попрешь на крутых, уроем как остальных")
+            return response
 
     @app.route("/login", methods=["POST"])
     def teamserver_login_user():
@@ -53,8 +67,9 @@ class Teamserver(object):
             response['username'] = username
             auth_cookie = base64.b64encode(f"{username} `|` {authstring}".encode('utf-8'))
 
-        res = flask.make_response(flask.jsonify(response))
+        res = teamserver.teamserver.make_response()
         if success: res.set_cookie('Auth', auth_cookie)
+        res.set_data(json.dumps(response))
         return res
 
     @app.route("/cmd", methods=["POST"])
@@ -68,8 +83,8 @@ class Teamserver(object):
         error = False
         success = False
 
-        response = {"success": False}
-
+        response = teamserver.teamserver.make_response()
+        response.set_data(json.dumps({"success": success}))
         # Get the cookie
         try:
             cookie = flask.request.cookies.get("Auth")
@@ -87,7 +102,11 @@ class Teamserver(object):
             else:
                 # Our auth string didn't match
                 error = True
-        except Exception:
+        except Exception as e:
+            teamserver.logging.log(f"Client: {flask.request.remote_addr} error | type: {type(e).__name__} | "
+                                   f"err: {e} | " 
+                                   f"page: {flask.request.endpoint}",
+                                   level="error", source=f"{teamserver.teamserver.info['name']}")
             error = True
 
         return response
@@ -101,7 +120,7 @@ class Teamserver(object):
         teamserver = args[0]
 
         try:
-            app.run(host=teamserver.http_addr, port=teamserver.http_port)
+            teamserver.http_server = app.run(host=teamserver.http_addr, port=teamserver.http_port)
         except Exception as e:
             teamserver.logging.log(f"Critical error when starting teamserver api server", level="critical",
                                    source=f"{teamserver.teamserver.info['name']}")

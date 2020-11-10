@@ -18,10 +18,10 @@ def listen_on_listener_socket(addr, port):
     :param port:
     :return:
     """
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as management_channel:
-        management_channel.bind((addr, port))
-        management_channel.listen()
-        return management_channel
+    management_channel = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    management_channel.bind((addr, int(port)))
+    management_channel.listen()
+    return management_channel
 
 
 def send_management_frame(teamserver, data):

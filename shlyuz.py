@@ -61,6 +61,7 @@ class Shlyuz_Teamserver(object):
         # Starts the listener socket
         self.logging.log("Starting Shlyuz teamserver listener socket", level="debug", source="teamserver_init")
         self.listener_socket = networking.listen_on_listener_socket(self.config['l_addr'], self.config['l_port'])
+        self.logging.log("Started Shlyuz teamserver listener socket", level="debug", source="teamserver_init")
 
         self.logging.log("Starting Shlyuz teamserver flask thread", level="debug")
         self.teamserver = teamserver.Teamserver(self)
@@ -96,22 +97,22 @@ class Shlyuz_Teamserver(object):
         banner.Banner()
 
         # Teamserver class init
-        # Create our teamserver object
-        self.shlyuz = Shlyuz(args)
+        # Create our teamserver object  # TODO: Not used
+        # self.shlyuz = Shlyuz(args)
 
         # Start our input handler
-        self.handler = handler.Handler(self.shlyuz)
+        # self.handler = handler.Handler(self.shlyuz) # TODO: Not used
 
         # Get the manifest(s) from the listening post(s)
         # asyncio.run(self.get_manifests())
 
-        teamserver_thread = Thread(target=self.teamserver.start_teamserver, args=(self,))
-        teamserver_thread.daemon = True
-        teamserver_thread.start()
-        self.logging.log("Started Shlyuz teamserver")
+        self.teamserver_thread = teamserver_thread = Thread(target=self.teamserver.start_teamserver, args=(self,))
+        self.teamserver_thread.daemon = True
+        self.teamserver_thread.start()
+        self.logging.log("Started Shlyuz teamserver", level="debug", source="teamserver_start")
 
-        # Give shlyuz an instance of the teamserver
-        self.shlyuz.teamserver = self
+        # # Give shlyuz an instance of the teamserver
+        # self.teamserver = self
 
         # TODO: logic here to retrieve listening post manifests
         self.logging.log("Retrieving listening post manifests")
