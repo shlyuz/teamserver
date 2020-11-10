@@ -15,6 +15,7 @@ class Teamserver(object):
         self.info = {"name": "teamserver",
                      "author": "und3rf10w"
                      }
+        self.status = "INIT"
         super(Teamserver, self).__init__()
 
     def make_response(self):
@@ -92,16 +93,28 @@ class Teamserver(object):
             if base64.b64decode(recv_authstring).decode("utf-8") == teamserver.config['authstring']:
                 # Process the command
                 data = flask.request.get_json(force=True)
-                teamserver.logging.log(f"Received {data['cmd']}, from {username}, for implant {data['implant_id']}",
-                                       level="debug", source=f"{teamserver.teamserver.info['name']}")
-                teamserver.config()  # TODO: Why is this here?
+                teamserver.logging.log(f"{username}: {data['cmd']} | component: {data['cid']}",
+                                       level="info", source=f"{teamserver.teamserver.info['name']}")
+                # TODO: Verify that the command exists in the command library
+                #   * If not, return an error
+                #   * If yes, continue to generate the instruction frame
                 instruction_frame = instructions.create_instruction_frame(data)
+                teamserver.logging.log(f"{username}: {data['cmd']} | frame: {instruction_frame}",
+                                       level="debug", source=f"{teamserver.teamserver.info['name']}")
+
                 # TODO: Resolve the destination component from instruction_frame['component_id']
-                #  * Add this instruction frame to the queue for the resulting component_id's relay
+                teamserver.add_instruction_to_cmd_queue(instruction_frame)
+                success = True
+                response.set_data(json.dumps({"success": success, "tid": instruction_frame['transaction_id']}))
 
             else:
                 # Our auth string didn't match
                 error = True
+                response.set_data(json.dumps({"success": success, "error": error}))
+                teamserver.logging.log(f"Client: {flask.request.remote_addr} error "
+                                       f"err: INVALID_AUTHSTRING | "
+                                       f"page: {flask.request.endpoint}",
+                                       level="error", source=f"{teamserver.teamserver.info['name']}")
         except Exception as e:
             teamserver.logging.log(f"Client: {flask.request.remote_addr} error | type: {type(e).__name__} | "
                                    f"err: {e} | " 

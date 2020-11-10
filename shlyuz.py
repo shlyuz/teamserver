@@ -48,15 +48,16 @@ class Shlyuz_Teamserver(object):
         self.http_addr = self.config['http_addr']
         self.http_port = self.config['http_port']
 
+        # Teamserver Queues
+        self.cmd_queue = []
+
         # Implant runtime vars
         self.implants = {}
         self.implant_count = len(self.implants)
-        self.current_implant = None  # used for operator console
 
         # Listener runtime vars
         self.listeners = {}
         self.listener_count = len(self.listeners)
-        self.current_listener = None  # used for operator console
 
         # Starts the listener socket
         self.logging.log("Starting Shlyuz teamserver listener socket", level="debug", source="teamserver_init")
@@ -66,25 +67,48 @@ class Shlyuz_Teamserver(object):
         self.logging.log("Starting Shlyuz teamserver flask thread", level="debug")
         self.teamserver = teamserver.Teamserver(self)
 
-    async def get_manifests(self):
-        return 0  # TODO: Remove me
-        # shlyuz = Shlyuz(args)
+    def add_instruction_to_cmd_queue(self, instruction_frame):
+        """
+        Takes an instruction frame and adds it to the cmd_queue. Assigns a state of 'processing' to
+        the instruction_frame
+        :param instruction_frame: a raw instruction frame
+        :return:
+        """
+        instruction_frame['state'] = "processing"
+        self.cmd_queue.append(instruction_frame)
+
+    def get_manifests(self):
+        # TODO: Remove me
+        # DEBUG
+        self.listeners = [{"id": 1,
+                           "implants": [{"implant_id": "DEADB33F",
+                                         "implant_os": "win",
+                                         "implant_user": "user"
+                                         }],
+                           "socket": ""}]
+
+    # async def get_manifests(self):
+    # TODO: Implement me
         # TODO: Start the listener interaction thread(s)
         # Gotta figure out how this is gonna work first
         # Plan is to start listener interactions, gather metadata from them (about the state of the implants), \
         # then start the console, which after the banner prints but before the console starts should print info about \
         # the current state of the entire shlyuz framework
 
-        # TODO: Start listener interaction socket
-        #  * Send out manifest requests to configured listening posts
-        #  * As responses are returned, update self.listeners with the manifests
-        #  * As listener manifests are returned, extract implant manifests, update self.listeners with the manifests
-        #  * Now you have a map of implant -> listening_post which can be cross references against self.listeners and \
-        #    self.implants
-        #  * async loop to periodically update self.implant_count and self.listener_count
-        #  * Let the listener interaction socket continue
+    # TODO: listener socket interaction loop
+    #  * Send out manifest requests to configured listening posts
+    #  * As responses are returned, update self.listeners with the manifests
+    #  * As listener manifests are returned, extract implant manifests, update self.listeners with the manifests
+    #  * Now you have a map of implant -> listening_post which can be cross references against self.listeners and \
+    #    self.implants
+    #  * async loop to periodically update self.implant_count and self.listener_count
+    #  * Let the listener interaction socket continue
 
     # TODO: Print stats from the listener manifests
+    def print_stats(self):
+        # TODO: Implement me
+        print(self.listeners)
+        print(self.implants)
 
     def start(self):
         """
@@ -110,14 +134,15 @@ class Shlyuz_Teamserver(object):
         self.teamserver_thread.daemon = True
         self.teamserver_thread.start()
         self.logging.log("Started Shlyuz teamserver", level="debug", source="teamserver_start")
-
-        # # Give shlyuz an instance of the teamserver
-        # self.teamserver = self
+        self.teamserver.status = "STARTED"
 
         # TODO: logic here to retrieve listening post manifests
         self.logging.log("Retrieving listening post manifests")
+        self.get_manifests()  # TODO: Make me async, possibly assign my output as an attribute
 
         # TODO: Logic here to output and update stats about environment from listener manifests
+
+        # TODO: Logic here to start the async jobs to process stuff as it comes into the listener channel
 
         while True:
             pass
