@@ -3,6 +3,7 @@ import time
 
 
 def create_instruction_frame(data):
+    # TODO: Map username to a guid, and embed it in the instruction frame for accounting
     instruction_frame = {
         "component_id": data['cid'],
         "command": data['cmd'],

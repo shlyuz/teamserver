@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-
 import asyncio
-import ssl
 import argparse
 from threading import Thread
 
@@ -9,8 +7,7 @@ from lib import teamserver
 from lib import logging
 from lib import banner
 from lib import configparse
-from lib import handler
-from lib import networking
+from lib import listener
 
 
 class Shlyuz(object):
@@ -38,9 +35,9 @@ class Shlyuz(object):
         # self.callback = args['callback'] #TODO: Implement me if we're gonna use this... Likely not
 
 
-class Shlyuz_Teamserver(object):
+class ShlyuzTeamserver(object):
     def __init__(self, args):
-        super(Shlyuz_Teamserver, self).__init__()
+        super(ShlyuzTeamserver, self).__init__()
 
         self.logging = logging.Logging(args['debug'])
         self.logging.log("Starting Shlyuz Teamserver", source="teamserver_init")
@@ -61,11 +58,11 @@ class Shlyuz_Teamserver(object):
 
         # Starts the listener socket
         self.logging.log("Starting Shlyuz teamserver listener socket", level="debug", source="teamserver_init")
-        self.listener_socket = networking.listen_on_listener_socket(self.config['l_addr'], self.config['l_port'])
-        self.logging.log("Started Shlyuz teamserver listener socket", level="debug", source="teamserver_init")
+        self.listener_socket = listener.start_management_socket(self)
 
         self.logging.log("Starting Shlyuz teamserver flask thread", level="debug")
         self.teamserver = teamserver.Teamserver(self)
+        self.teamserver_thread = None
 
     def add_instruction_to_cmd_queue(self, instruction_frame):
         """
@@ -77,7 +74,7 @@ class Shlyuz_Teamserver(object):
         instruction_frame['state'] = "processing"
         self.cmd_queue.append(instruction_frame)
 
-    def get_manifests(self):
+    async def get_manifests(self):
         # TODO: Remove me
         # DEBUG
         self.listeners = [{"id": 1,
@@ -86,14 +83,17 @@ class Shlyuz_Teamserver(object):
                                          "implant_user": "user"
                                          }],
                            "socket": ""}]
+        return self.listeners
 
-    # async def get_manifests(self):
+    async def gather_manifests(self):
+        await asyncio.gather(self.get_manifests())
+
     # TODO: Implement me
-        # TODO: Start the listener interaction thread(s)
-        # Gotta figure out how this is gonna work first
-        # Plan is to start listener interactions, gather metadata from them (about the state of the implants), \
-        # then start the console, which after the banner prints but before the console starts should print info about \
-        # the current state of the entire shlyuz framework
+    # TODO: Start the listener interaction thread(s)
+    # Gotta figure out how this is gonna work first
+    # Plan is to start listener interactions, gather metadata from them (about the state of the implants), \
+    # then start the console, which after the banner prints but before the console starts should print info about \
+    # the current state of the entire shlyuz framework
 
     # TODO: listener socket interaction loop
     #  * Send out manifest requests to configured listening posts
@@ -130,7 +130,7 @@ class Shlyuz_Teamserver(object):
         # Get the manifest(s) from the listening post(s)
         # asyncio.run(self.get_manifests())
 
-        self.teamserver_thread = teamserver_thread = Thread(target=self.teamserver.start_teamserver, args=(self,))
+        self.teamserver_thread = Thread(target=self.teamserver.start_teamserver, args=(self,))
         self.teamserver_thread.daemon = True
         self.teamserver_thread.start()
         self.logging.log("Started Shlyuz teamserver", level="debug", source="teamserver_start")
@@ -138,9 +138,11 @@ class Shlyuz_Teamserver(object):
 
         # TODO: logic here to retrieve listening post manifests
         self.logging.log("Retrieving listening post manifests")
-        self.get_manifests()  # TODO: Make me async, possibly assign my output as an attribute
+        # self.get_manifests()  # TODO: Make me async, possibly assign my output as an attribute
+        asyncio.run(self.gather_manifests())
 
         # TODO: Logic here to output and update stats about environment from listener manifests
+        self.print_stats()
 
         # TODO: Logic here to start the async jobs to process stuff as it comes into the listener channel
 
@@ -161,5 +163,5 @@ if __name__ == '__main__':
     global shlyuz
     shlyuz = Shlyuz(args)  # not currently used
     args['config'] = shlyuz.config.config
-    shlyuz_teamserver = Shlyuz_Teamserver(args)
+    shlyuz_teamserver = ShlyuzTeamserver(args)
     shlyuz_teamserver.start()
