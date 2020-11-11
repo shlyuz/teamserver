@@ -81,8 +81,8 @@ class ShlyuzTeamserver(object):
                            "implants": [{"implant_id": "DEADB33F",
                                          "implant_os": "win",
                                          "implant_user": "user"
-                                         }],
-                           "socket": ""}]
+                                         }]
+                           }]
         return self.listeners
 
     async def gather_manifests(self):

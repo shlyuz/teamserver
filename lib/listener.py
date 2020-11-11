@@ -15,5 +15,5 @@ def start_management_socket(teamserver):
     teamserver.logging.log("Started Shlyuz teamserver listener socket", level="debug", source="teamserver_init")
     t = Thread(target=start_background_loop, args=(loop,), daemon=False)
     t.start()
-    loop.create_task(asyncio.start_server(networking.handle_client, teamserver.config['l_addr'],
+    loop.create_task(loop.create_server(networking.handle_client, teamserver.config['l_addr'],
                                           int(teamserver.config['l_port'])))
