@@ -58,7 +58,7 @@ class ShlyuzTeamserver(object):
 
         # Starts the listener socket
         self.logging.log("Starting Shlyuz teamserver listener socket", level="debug", source="teamserver_init")
-        self.listener_socket = listener.start_management_socket(self)
+        self.listener_thread = listener.start_management_socket(self)
 
         self.logging.log("Starting Shlyuz teamserver flask thread", level="debug")
         self.teamserver = teamserver.Teamserver(self)

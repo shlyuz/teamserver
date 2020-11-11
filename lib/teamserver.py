@@ -135,6 +135,6 @@ class Teamserver(object):
         try:
             teamserver.http_server = app.run(host=teamserver.http_addr, port=teamserver.http_port)
         except Exception as e:
-            teamserver.logging.log(f"Critical error when starting teamserver api server", level="critical",
-                                   source=f"{teamserver.teamserver.info['name']}")
+            teamserver.logging.log(f"Critical [{type(e).__name__}] when starting teamserver api server: {e}",
+                                   level="critical", source=f"{teamserver.teamserver.info['name']}")
             exit()
