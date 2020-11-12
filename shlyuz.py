@@ -2,6 +2,7 @@
 import asyncio
 import argparse
 from threading import Thread
+import ast
 
 from lib import teamserver
 from lib import logging
@@ -44,6 +45,12 @@ class ShlyuzTeamserver(object):
         self.config = args['config']['teamserver']
         self.http_addr = self.config['http_addr']
         self.http_port = self.config['http_port']
+
+        # Crypto values
+        self.initial_private_key = args['config']['crypto']['private_key']
+        self.initial_public_key = self.initial_private_key.public_key
+        self.initial_rc6_key = args['config']['crypto']['rc6_key']
+        self.xor_key = ast.literal_eval(args['config']['crypto']['xor_key'])
 
         # Teamserver Queues
         self.cmd_queue = []

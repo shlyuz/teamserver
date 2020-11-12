@@ -11,4 +11,5 @@ class ConfigParse(object):
     def read_config(self, config_file):
         config = configparser.RawConfigParser()
         config.read(config_file)
+        # TODO: Validate config values before returning. Hard exit on validation fail.
         return config

@@ -17,7 +17,7 @@ root_return_string = Попрешь на крутых, уроем как ост�
 server_header = Shlyuz
 
 [crypto]
-# Values used for the cryptography libraries
+# Values used for the cryptography libraries, get them from running setup.py
 rc6_key = DEADBEEFBAADF00D # 16 byte cryptographic string used for rc6 encryption
 xor_key = 0x38 Hex digit used for xor encoding
 private_key = b'xxxxxxxxx'

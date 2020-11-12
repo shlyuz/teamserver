@@ -1,5 +1,6 @@
 import nacl.utils
 import nacl.public
+import ast
 
 
 def generate_nonce():
@@ -17,6 +18,26 @@ def generate_private_key():
     :return:
     """
     return nacl.public.PrivateKey.generate()
+
+
+def private_key_from_bytes(sk_string):
+    """
+    Used to convert bytes from a private key stored in the config to a private key object
+
+    :param sk_string: the string from [crypto][private_key] stored in the config
+    :return: a nacl.public.PrivateKey object
+    """
+    return nacl.public.PrivateKey(ast.literal_eval(sk_string))
+
+
+def public_key_from_bytes(pk_string):
+    """
+    Used to convert bytes from a public key stored in the config to a public key object
+
+    :param pk_string: the string from [xxxx][public_key] stored in the config
+    :return: a nacl.public.PublicKey object
+    """
+    return nacl.public.PublicKey(ast.literal_eval(pk_string))
 
 
 def prepare_box(secret_key, target_public_key):
