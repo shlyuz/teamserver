@@ -93,12 +93,13 @@ class Teamserver(object):
             if base64.b64decode(recv_authstring).decode("utf-8") == teamserver.config['authstring']:
                 # Process the command
                 data = flask.request.get_json(force=True)
-                teamserver.logging.log(f"{username}: {data['cmd']} | component: {data['cid']}",
-                                       level="info", source=f"{teamserver.teamserver.info['name']}")
                 # TODO: Verify that the command exists in the command library
                 #   * If not, return an error
                 #   * If yes, continue to generate the instruction frame
                 instruction_frame = instructions.create_instruction_frame(data)
+                teamserver.logging.log(f"{username}: {data['cmd']} | component: {data['cid']}"
+                                       f" | {instruction_frame['transaction_id']}",
+                                       level="info", source=f"{teamserver.teamserver.info['name']}")
                 teamserver.logging.log(f"{username}: {data['cmd']} | frame: {instruction_frame}",
                                        level="debug", source=f"{teamserver.teamserver.info['name']}")
 

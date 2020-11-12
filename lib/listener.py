@@ -11,6 +11,8 @@ def lp_init(frame, teamserver):
 
 def lp_initalized(frame, teamserver):
     reply_frame = {'cid': 1, "icount": 1, "t": "lpmo", "tpk": b"\xDE\xAD\xF0\x0D"}
+    teamserver.logging.log(f"Got new listening post! ID: {reply_frame['cid']}, Implants: {reply_frame['icount']}",
+                           source="lib.listener")
     return reply_frame
 
 
@@ -23,6 +25,12 @@ def lp_process_manifest(frame, teamserver):
 def lp_rekey(frame, teamserver):
     reply_frame = lp_initalized(frame, teamserver)
     return reply_frame
+
+
+def lp_getcmd(frame, teamserver):
+    reply_frame = lp_initalized(frame, teamserver)
+    return reply_frame
+
 
 
 def start_background_loop(loop):

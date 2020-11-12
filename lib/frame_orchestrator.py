@@ -5,7 +5,8 @@ from lib import transmit
 destinations = {"lpi": listener.lp_init,
                 "lpm": listener.lp_process_manifest,
                 "lpo": listener.lp_initalized,
-                "lprk": listener.lp_rekey
+                "lprk": listener.lp_rekey,
+                "gcmd": listener.lp_getcmd
                 }
 
 
