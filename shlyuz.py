@@ -9,6 +9,7 @@ from lib import logging
 from lib import banner
 from lib import configparse
 from lib import listener
+from lib.crypto import asymmetric
 
 
 class Shlyuz(object):
@@ -47,7 +48,7 @@ class ShlyuzTeamserver(object):
         self.http_port = self.config['http_port']
 
         # Crypto values
-        self.initial_private_key = args['config']['crypto']['private_key']
+        self.initial_private_key = asymmetric.private_key_from_bytes(args['config']['crypto']['private_key'])
         self.initial_public_key = self.initial_private_key.public_key
         self.initial_rc6_key = args['config']['crypto']['rc6_key']
         self.xor_key = ast.literal_eval(args['config']['crypto']['xor_key'])
@@ -66,6 +67,7 @@ class ShlyuzTeamserver(object):
         # Starts the listener socket
         self.logging.log("Starting Shlyuz teamserver listener socket", level="debug", source="teamserver_init")
         self.listener_thread = listener.start_management_socket(self)
+        self.logging.log("Started Shlyuz teamserver listener socket", level="debug", source="teamserver_init")
 
         self.logging.log("Starting Shlyuz teamserver flask thread", level="debug")
         self.teamserver = teamserver.Teamserver(self)
@@ -146,10 +148,10 @@ class ShlyuzTeamserver(object):
         # TODO: logic here to retrieve listening post manifests
         self.logging.log("Retrieving listening post manifests")
         # self.get_manifests()  # TODO: Make me async, possibly assign my output as an attribute
-        asyncio.run(self.gather_manifests())
+        # asyncio.run(self.gather_manifests())
 
         # TODO: Logic here to output and update stats about environment from listener manifests
-        self.print_stats()
+        # self.print_stats()
 
         # TODO: Logic here to start the async jobs to process stuff as it comes into the listener channel
 

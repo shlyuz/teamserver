@@ -2,33 +2,86 @@ import asyncio
 from threading import Thread
 
 from lib import networking
+from lib import instructions
+
+# TODO: All frame cooking and uncooking should be done here for
 
 
 def lp_init(frame, teamserver):
-    reply_frame = {'cid': 1, "icount": 1, "t": "lpo", "tpk": b"\xDE\xAD\xF0\x0D"}
+    """
+    RECEIVES: Initialization from listening post, pubkey used by listening_post for next transaction
+    SENDS: Teamserver pubkey used for next transaction
+    SETS: Pubkey for lp component, state for lp component, Keypair for teamserver comms for lp component
+
+    :param frame:
+    :param teamserver:
+    :return:
+    """
+    # We'll get a txid here from the frame
+    data = {'component_id': frame['component_id'], "cmd": "lpo", "args": [{"tpk": teamserver.initial_public_key._public_key}],
+            "txid": frame['txid']}
+    instruction_frame = instructions.create_instruction_frame(data)
+    # TODO: value setting
+    reply_frame = instruction_frame  # Debug, will be encoded once cooked
     return reply_frame
 
 
-def lp_initalized(frame, teamserver):
-    reply_frame = {'cid': 1, "icount": 1, "t": "lpmo", "tpk": b"\xDE\xAD\xF0\x0D"}
-    teamserver.logging.log(f"Got new listening post! ID: {reply_frame['cid']}, Implants: {reply_frame['icount']}",
-                           source="lib.listener")
+def lp_initialized(frame, teamserver):
+    """
+    RECEIVES: Manifest from listening post, pubkey used by listening_post for next transaction
+    SENDS: Teamserver pubkey used for next transaction, ACK of received manifest
+    SETS: Pubkey for lp component, state for lp component, Keypair for teamserver comms for lp component, manifest of
+      lp component. Manifest for implant(s) in lp component's sent manifest
+
+    :param frame:
+    :param teamserver:
+    :return:
+    """
+    data = {'component_id': frame['component_id'], "cmd": "lpmo", "args": [{"tpk": teamserver.initial_public_key._public_key}],
+            "txid": frame['txid']}
+    # TODO: Value setting
+    instruction_frame = instructions.create_instruction_frame(data)
+    reply_frame = instruction_frame  # Debug, will be encoded once cooked
+    teamserver.logging.log(f"Got new listening post! ID: {reply_frame['component_id']}", source="lib.listener")
+    # f"Implants: {reply_frame['args']['implant_count']}", # TODO: list index must be int, not str
+
     return reply_frame
 
 
 def lp_process_manifest(frame, teamserver):
-    # TODO: Process the manifest
-    reply_frame = lp_initalized(frame, teamserver)  # debug
+    # TODO: Extract and process the manifest
+    # TODO: Implement me
+    reply_frame = lp_initialized(frame, teamserver)  # debug
     return reply_frame
 
 
 def lp_rekey(frame, teamserver):
-    reply_frame = lp_initalized(frame, teamserver)
+    """
+    RECEIVES: Rekey request from listening post, pubkey used by listening_post for next transaction
+    SENDS: Teamserver pubkey used for next transaction, ACK of rekey request
+    SETS: Pubkey for lp component, keypair for teamserver comms for lp component
+
+    :param frame:
+    :param teamserver:
+    :return:
+    """
+    # TODO: implement me
+    reply_frame = lp_initialized(frame, teamserver)
     return reply_frame
 
 
 def lp_getcmd(frame, teamserver):
-    reply_frame = lp_initalized(frame, teamserver)
+    """
+    RECEIVES: Command request from listening post, pubkey used by listening post for next transaction
+    SENDS: Teamserver pubkey used for next transaction, command from listening post cmd queue
+    SETS: Pubkey for lp component, keypair for teamserver comms for lp component
+
+    :param frame:
+    :param teamserver:
+    :return:
+    """
+    # TODO: implement me
+    reply_frame = lp_initialized(frame, teamserver)
     return reply_frame
 
 
@@ -41,7 +94,6 @@ def start_background_loop(loop):
 def start_management_socket(teamserver):
     teamserver = teamserver
     loop = asyncio.new_event_loop()
-    teamserver.logging.log("Started Shlyuz teamserver listener socket", level="debug", source="teamserver_init")
     t = Thread(target=start_background_loop, args=(loop,), daemon=False)
     loop.create_task(asyncio.start_server(lambda reader, writer: networking.handle_client(reader=reader, writer=writer,
                                                                                           teamserver=teamserver),

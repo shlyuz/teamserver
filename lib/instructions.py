@@ -3,12 +3,16 @@ import time
 
 
 def create_instruction_frame(data):
-    # TODO: Map username to a guid, and embed it in the instruction frame for accounting
     instruction_frame = {
-        "component_id": data['cid'],
-        "command": data['cmd'],
+        "component_id": data['component_id'],
+        "cmd": data['cmd'],
         "args": data['args'],
-        "transaction_id": uuid.uuid4().hex,
         "date": time.strftime('%Y/%m/%d %H:%M:%S', time.gmtime())
     }
+    if 'txid' not in data.keys():
+        instruction_frame['txid'] = uuid.uuid4().hex
+    else:
+        instruction_frame['txid'] = data['txid']
+    if 'uname' in data.keys():
+        instruction_frame['uname'] = uuid.uuid4().hex
     return instruction_frame

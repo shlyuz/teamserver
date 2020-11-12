@@ -1,5 +1,6 @@
 import configparser
 
+
 class ConfigParse(object):
     def __init__(self, config_file):
         self.info = {"name": "configparse",

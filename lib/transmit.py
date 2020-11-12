@@ -18,6 +18,8 @@ def uncook_transmit_frame(teamserver, frame):
     :return:
     """
 
+    # TODO: Xor nonce with component id OR
+    #  try to iterate through pubkeys to determine which component the message came from
     # Asymmetric Encryption Routine
     lp_pubkey = teamserver.listeners['teamserver_id'][
         'public_key']  # TODO: Figure out how to get 'listener_id' properly
@@ -56,7 +58,7 @@ def cook_transmit_frame(teamserver, data):
     :return:
     """
     # frame looks like {"id": 1, "frame_data": "somearbitrarydata", "chunks": 1}
-
+    #
     # TODO: Dynamically generate the rc6 key, and put in asymmetric envelope
     # Symmetric Encryption Routine
     rc6_key = secrets.token_urlsafe(16)
