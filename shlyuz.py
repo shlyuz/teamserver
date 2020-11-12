@@ -9,6 +9,7 @@ from lib import logging
 from lib import banner
 from lib import configparse
 from lib import listener
+from lib import common
 from lib.crypto import asymmetric
 
 
@@ -24,6 +25,7 @@ class Shlyuz(object):
         # Declare our variables to run
         self.logging = logging.Logging(args['debug'])
         self.logging.log("Starting Shlyuz")
+        self.version = common.VERSION
 
         # Load our config
         self.logging.log(f"Loading Shlyuz config from {args['config']}", level='debug')
@@ -57,11 +59,11 @@ class ShlyuzTeamserver(object):
         self.cmd_queue = []
 
         # Implant runtime vars
-        self.implants = {}
+        self.implants = []
         self.implant_count = len(self.implants)
 
         # Listener runtime vars
-        self.listeners = {}
+        self.listeners = []
         self.listener_count = len(self.listeners)
 
         # Starts the listener socket
@@ -86,12 +88,7 @@ class ShlyuzTeamserver(object):
     async def get_manifests(self):
         # TODO: Remove me
         # DEBUG
-        self.listeners = [{"id": 1,
-                           "implants": [{"implant_id": "DEADB33F",
-                                         "implant_os": "win",
-                                         "implant_user": "user"
-                                         }]
-                           }]
+        self.listeners = []
         return self.listeners
 
     async def gather_manifests(self):

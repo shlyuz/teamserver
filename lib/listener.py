@@ -3,6 +3,7 @@ from threading import Thread
 
 from lib import networking
 from lib import instructions
+from lib.crypto import asymmetric
 
 # TODO: All frame cooking and uncooking should be done here for
 
@@ -51,6 +52,9 @@ def lp_initialized(frame, teamserver):
 def lp_process_manifest(frame, teamserver):
     # TODO: Extract and process the manifest
     # TODO: Implement me
+    listening_post_manifest = next(item for item in frame['args'] if item["component_id"] == frame['component_id'])
+    listening_post_manifest['lpk'] = asymmetric.public_key_from_bytes(str(frame['args'][1]['lpk']))
+    teamserver.listeners.append(listening_post_manifest)
     reply_frame = lp_initialized(frame, teamserver)  # debug
     return reply_frame
 
