@@ -52,7 +52,6 @@ class ShlyuzTeamserver(object):
         # Crypto values
         self.initial_private_key = asymmetric.private_key_from_bytes(args['config']['crypto']['private_key'])
         self.initial_public_key = self.initial_private_key.public_key
-        self.initial_rc6_key = args['config']['crypto']['rc6_key']
         self.xor_key = ast.literal_eval(args['config']['crypto']['xor_key'])
 
         # Teamserver Queues
@@ -65,6 +64,8 @@ class ShlyuzTeamserver(object):
         # Listener runtime vars
         self.listeners = []
         self.listener_count = len(self.listeners)
+        # DEBUG TODO: REmove me
+        self.lp_pubkey = asymmetric.public_key_from_bytes(args['config']['listening_post_f35dead2cae04a6d975598153ae9a251']['pubkey'])
 
         # Starts the listener socket
         self.logging.log("Starting Shlyuz teamserver listener socket", level="debug", source="teamserver_init")

