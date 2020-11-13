@@ -27,11 +27,11 @@ async def handle_client(reader, writer, teamserver):
                 raise ConnectionResetError
         else:
             pass
-        response = reply_frame
+        response = transmit.cook_transmit_frame(teamserver, reply_frame)
         teamserver.logging.log(f"SEND: {response}", level="debug", source="lib.networking")
         rlen = struct.pack('<I', len(str(response).encode('utf-8')))
         # Send the response
-        writer.write(rlen + str(response).encode('utf-8'))  # encode is debug, I think it'll already be there
+        writer.write(rlen + response)
         await writer.drain()
     except ConnectionResetError:
         writer.close()
