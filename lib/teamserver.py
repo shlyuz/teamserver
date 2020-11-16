@@ -97,8 +97,8 @@ class Teamserver(object):
                 #   * If not, return an error
                 #   * If yes, continue to generate the instruction frame
                 instruction_frame = instructions.create_instruction_frame(data)
-                teamserver.logging.log(f"{username}: {data['cmd']} | component: {data['cid']}"
-                                       f" | {instruction_frame['transaction_id']}",
+                teamserver.logging.log(f"{username}: {data['cmd']} | component_id: {data['component_id']}"
+                                       f" | txid: {instruction_frame['txid']}",
                                        level="info", source=f"{teamserver.teamserver.info['name']}")
                 teamserver.logging.log(f"{username}: {data['cmd']} | frame: {instruction_frame}",
                                        level="debug", source=f"{teamserver.teamserver.info['name']}")
@@ -106,7 +106,7 @@ class Teamserver(object):
                 # TODO: Resolve the destination component from instruction_frame['component_id']
                 teamserver.add_instruction_to_cmd_queue(instruction_frame)
                 success = True
-                response.set_data(json.dumps({"success": success, "tid": instruction_frame['transaction_id']}))
+                response.set_data(json.dumps({"success": success, "txid": instruction_frame['txid']}))
 
             else:
                 # Our auth string didn't match
