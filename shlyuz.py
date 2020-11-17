@@ -56,6 +56,7 @@ class ShlyuzTeamserver(object):
 
         # Teamserver Queues
         self.cmd_queue = []
+        self.cmd_sent = []
 
         # Implant runtime vars
         self.implants = []
@@ -64,7 +65,7 @@ class ShlyuzTeamserver(object):
         # Listener runtime vars
         self.listeners = []
         self.listener_count = len(self.listeners)
-        # DEBUG TODO: REmove me
+        # DEBUG TODO: REmove me, resolve me
         self.lp_pubkey = asymmetric.public_key_from_bytes(args['config']['listening_post_f35dead2cae04a6d975598153ae9a251']['pubkey'])
 
         # Starts the listener socket
