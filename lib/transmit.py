@@ -10,7 +10,20 @@ import lib.crypto.xor
 import lib.crypto.asymmetric
 
 
+def find_component_keypair(teamserver, target_id):
+    try:
+        component_index = next(index for (index, d) in enumerate(teamserver.listeners) if
+                             d["component_id"] == target_id)
+        return teamserver.listeners['']
+    except StopIteration:
+        component_index = next(index for (index, d) in enumerate(teamserver.implants) if
+                             d["implant_id"] == target_id)
+        listener_index = next(index for (index, d) in enumerate(teamserver.listeners) if
+                             d["component_id"] == target_id)
+
+
 def uncook_transmit_frame(teamserver, frame):
+    # TODO: Rotate keys
     """
 
     :param teamserver:
@@ -47,6 +60,7 @@ def uncook_transmit_frame(teamserver, frame):
 
 
 def cook_transmit_frame(teamserver, data):
+    # TODO: Rotate keys
     """
 
     :param teamserver:
@@ -113,6 +127,10 @@ def cook_sealed_frame(teamserver, data):
     ts_pubkey = teamserver.current_ts_pubkey
     frame_box = lib.crypto.asymmetric.prepare_sealed_box(ts_pubkey)
     transmit_frames = lib.crypto.asymmetric.encrypt(frame_box, enveloped_frames)
+
+    # Prepend the transmit frame with an init signature
+    init_signature = ast.literal_eval(teamserver.config['teamserver']['init_signature'])
+    transmit_frames = init_signature + transmit_frames
 
     teamserver.logging.log(f"Enveloped init data: {transmit_frames}", level="debug", source="lib.transmit")
     return transmit_frames

@@ -169,7 +169,7 @@ if __name__ == '__main__':
     # parse the args
     args = vars(parser.parse_args())
 
-    global shlyuz
+    # global shlyuz
     shlyuz = Shlyuz(args)  # not currently used
     args['config'] = shlyuz.config.config
     shlyuz_teamserver = ShlyuzTeamserver(args)
