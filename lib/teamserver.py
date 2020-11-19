@@ -2,6 +2,7 @@ import base64
 import asyncio
 import flask
 import json
+import copy
 
 from lib import networking
 from lib import instructions
@@ -43,35 +44,103 @@ class Teamserver(object):
         :return:
         """
         error = False
-        data = flask.request.get_json(force=True)
-
-        try:
-            username = data['username']
-            authstring = data['authstring']
-        except KeyError:
-            error = True
-
-        teamserver.logging.log(f"Authentication attempt from {flask.request.remote_addr} for user {data['username']}",
-                               source=f"{teamserver.teamserver.info['name']}")
-
-        if base64.b64decode(authstring).decode("utf-8") == teamserver.config['authstring']:
-            teamserver.logging.log(f"Authenticated {data['username']} from {flask.request.remote_addr}",
-                                   source=f"{teamserver.teamserver.info['name']}")
-            success = True
-        else:
-            teamserver.logging.log(f"Authentication Failed for {data['username']} from {flask.request.remote_addr}",
-                                   source=f"{teamserver.teamserver.info['name']}")
-            success = False
-
+        success = False
         response = {"success": success, "error": error}
-        if success and username:
-            response['username'] = username
-            auth_cookie = base64.b64encode(f"{username} `|` {authstring}".encode('utf-8'))
+        data = flask.request.get_json(force=True)
+        try:
+            try:
+                username = data['username']
+                authstring = data['authstring']
+            except KeyError:
+                raise ValueError
 
-        res = teamserver.teamserver.make_response()
-        if success: res.set_cookie('Auth', auth_cookie)
+            teamserver.logging.log(f"Authentication attempt from {flask.request.remote_addr} for user {data['username']}",
+                                   source=f"{teamserver.teamserver.info['name']}")
+
+            if base64.b64decode(authstring).decode("utf-8") == teamserver.config['authstring']:
+                teamserver.logging.log(f"Authenticated {data['username']} from {flask.request.remote_addr}",
+                                       source=f"{teamserver.teamserver.info['name']}")
+                success = True
+            else:
+                teamserver.logging.log(f"Authentication Failed for {data['username']} from {flask.request.remote_addr}:"
+                                       f" Invalid Authstring",
+                                       source=f"{teamserver.teamserver.info['name']}")
+                raise KeyError
+
+            if success and username:
+                response['username'] = username
+                auth_cookie = base64.b64encode(f"{username} `|` {authstring}".encode('utf-8'))
+            else:
+                raise KeyError
+
+            res = teamserver.teamserver.make_response()
+            if success: res.set_cookie('Auth', auth_cookie)
+
+        except ValueError:
+            error = True
+            success = False
+            res = teamserver.teamserver.make_response()
+        response = {"success": success}
+        if error:
+            response['error'] = error
         res.set_data(json.dumps(response))
         return res
+
+    @app.route("/get-stats", methods=["GET"])
+    def teamserver_get_stats():
+        """
+        REQUIRES-LOGIN: Get the stats of the teamserver. Basically just listening post manifests and implant manifests
+
+        :return:
+        """
+
+        error = False
+        success = False
+
+        response = teamserver.teamserver.make_response()
+        response.set_data(json.dumps({"success": success}))
+        # Get the cookie
+        try:
+            cookie = flask.request.cookies.get("Auth")
+            username, recv_authstring = base64.b64decode(cookie).decode('utf-8').split(" `|` ")
+            if base64.b64decode(recv_authstring).decode("utf-8") == teamserver.config['authstring']:
+                # Process the command
+                listeners = []
+                implants = []
+                if len(teamserver.listeners) > 0:
+                    for listener in teamserver.listeners:
+                        rcpt_listener = copy.copy(listener)
+                        rcpt_listener['lpk'] = str(rcpt_listener['lpk'])
+                        del rcpt_listener['implants']
+                        listeners.append(rcpt_listener)
+                if len(teamserver.implants) > 0:
+                    for implant in teamserver.implants:
+                        rcpt_implant = copy.copy(implant)
+                        rcpt_implant['ipk'] = str(rcpt_implant['ipk'])
+                        rcpt_implant['lpk'] = str(rcpt_implant['lpk'])
+                        del rcpt_implant['priv_key']
+                        implants.append(rcpt_implant)
+                data = {"listeners": listeners, "implants": implants}
+                success = True
+                teamserver.logging.log(f"{username}: get-stats",
+                                       level="info", source=f"{teamserver.teamserver.info['name']}")
+                response.set_data(json.dumps({"success": success, "data": data}))
+            else:
+                # Authstring likely didn't match
+                error = True
+                response.set_data(json.dumps({"success": success, "error": error}))
+                teamserver.logging.log(f"Client: {flask.request.remote_addr} error "
+                                       f"err: INVALID_AUTHSTRING | "
+                                       f"page: {flask.request.endpoint}",
+                                       level="error", source=f"{teamserver.teamserver.info['name']}")
+        except Exception as e:
+            teamserver.logging.log(f"Client: {flask.request.remote_addr} error | type: {type(e).__name__} | "
+                                   f"err: {e} | " 
+                                   f"page: {flask.request.endpoint}",
+                                   level="error", source=f"{teamserver.teamserver.info['name']}")
+            error = True
+
+        return response
 
     @app.route("/cmd", methods=["POST"])
     def teamserver_run_cmd():

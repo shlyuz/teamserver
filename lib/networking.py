@@ -34,7 +34,7 @@ async def handle_client(reader, writer, teamserver):
         writer.write(rlen + response)
         await writer.drain()
     except ConnectionResetError:
-        writer.close()
+        pass
     except struct.error:
         teamserver.logging.log(f"Invalid Data", level="debug", source="lib.networking")
     except UnboundLocalError:

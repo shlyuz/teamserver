@@ -5,7 +5,8 @@ destinations = {"lpi": listener.lp_init,
                 "lpm": listener.lp_process_manifest,
                 "lpo": listener.lp_initialized,
                 "lprk": listener.lp_rekey,
-                "gcmd": listener.lp_getcmd
+                "gcmd": listener.lp_getcmd,
+                "rcok": listener.lp_cmdack
                 }
 
 
