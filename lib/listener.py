@@ -17,6 +17,16 @@ def _get_cmd_sent_index(teamserver, cmd_txid):
     pass
 
 
+def _get_cmd_queue_index(teamserver, cmd_txid):
+    try:
+        cmd_index = next(index for (index, command) in enumerate(teamserver.cmd_queue) if command['txid'] == cmd_txid)
+        return cmd_index
+    except StopIteration:
+        teamserver.logging.log(f"Command {cmd_txid} not found!",
+                               level="error", source="lib.listener")
+    pass
+
+
 def lp_init(frame, teamserver):
     """
     RECEIVES: Initialization from listening post, pubkey used by listening_post for next transaction
@@ -144,7 +154,7 @@ def process_done_commands(frame, teamserver):
     for command in frame['done']:
         cmd_sent_index = _get_cmd_sent_index(teamserver, command['txid'])
         command['state'] = "COMPLETE"
-        event_history = {"timestamp": time(), "event": "OUTPUT_RECEIVED", "component": "server"}
+        event_history = {"timestamp": time(), "event": "FINISHED", "component": "server"}
         command['history'].append(event_history)
         teamserver.cmd_sent[cmd_sent_index] = command
 
@@ -199,20 +209,3 @@ def update_lp_manifest(teamserver, implant_manifest, listening_post_id):
             teamserver.implants[implant_index] = implant
         else:
             teamserver.implants.append(implant)
-
-
-def start_background_loop(loop):
-    asyncio.set_event_loop(loop)
-    loop.run_forever()
-
-
-def start_management_socket(teamserver):
-    teamserver = teamserver
-    loop = asyncio.new_event_loop()
-    t = Thread(target=start_background_loop, args=(loop,), daemon=False)
-    loop.create_task(asyncio.start_server(lambda reader, writer: networking.handle_client(reader=reader, writer=writer,
-                                                                                          teamserver=teamserver),
-                                          host=teamserver.config['l_addr'],
-                                          port=int(teamserver.config['l_port']), ))
-    t.start()
-    return t

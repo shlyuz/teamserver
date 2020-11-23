@@ -5,7 +5,7 @@ import json
 import copy
 from time import time
 
-from lib import networking
+from lib import listener
 from lib import instructions
 
 loop = asyncio.get_event_loop()
@@ -109,8 +109,8 @@ class Teamserver(object):
                 listeners = []
                 implants = []
                 if len(teamserver.listeners) > 0:
-                    for listener in teamserver.listeners:
-                        rcpt_listener = copy.copy(listener)
+                    for listening_post in teamserver.listeners:
+                        rcpt_listener = copy.copy(listening_post)
                         rcpt_listener['lpk'] = str(rcpt_listener['lpk'])
                         del rcpt_listener['implants']
                         listeners.append(rcpt_listener)
@@ -121,7 +121,7 @@ class Teamserver(object):
                         rcpt_implant['lpk'] = str(rcpt_implant['lpk'])
                         del rcpt_implant['priv_key']
                         implants.append(rcpt_implant)
-                data = {"listeners": listeners, "implants": implants}
+                data = {"listeners": listeners, "implants": implants, "cmd_sent": teamserver.cmd_sent, "cmd_queue": teamserver.cmd_queue}
                 success = True
                 teamserver.logging.log(f"{username}: get-stats",
                                        level="info", source=f"{teamserver.teamserver.info['name']}")
@@ -141,6 +141,51 @@ class Teamserver(object):
                                    level="error", source=f"{teamserver.teamserver.info['name']}")
             error = True
 
+        return response
+
+    @app.route("/get_cmd", methods=["POST"])
+    def teamserver_get_cmd():
+        """
+        Run a command on an implant
+
+        :return:
+        """
+
+        error = False
+        success = False
+
+        response = teamserver.teamserver.make_response()
+        response.set_data(json.dumps({"success": success}))
+        # Get the cookie
+        try:
+            cookie = flask.request.cookies.get("Auth")
+            username, recv_authstring = base64.b64decode(cookie).decode('utf-8').split(" `|` ")
+            if base64.b64decode(recv_authstring).decode("utf-8") == teamserver.config['authstring']:
+                # Process the command
+                data = flask.request.get_json(force=True)
+                teamserver.logging.log(f"{username}: getting output for cmd {data['txid']}",
+                                       level="debug", source=f"{teamserver.teamserver.info['name']}")
+                cmd_index = listener._get_cmd_sent_index(teamserver, data['txid'])
+                if cmd_index is None:
+                    cmd_index = listener._get_cmd_queue_index(teamserver, data['txid'])
+                    response_data = teamserver.cmd_queue_index(teamserver, data['txid'])
+                    success = True
+                    response.set_data(json.dumps({"success": success, "data": response_data}))
+                else:
+                    response_data = teamserver.cmd_queue_index(teamserver, data['txid'])
+                    success = True
+                    response.set_data(json.dumps({"success": success, "data": response_data}))
+                if response_data is None:
+                    error = True
+                    success = False
+                    response.set_data(json.dumps({"success": success, "error": error}))
+        except Exception as e:
+            teamserver.logging.log(f"Client: {flask.request.remote_addr} error | type: {type(e).__name__} | "
+                                   f"err: {e} | "
+                                   f"page: {flask.request.endpoint}",
+                                   level="error", source=f"{teamserver.teamserver.info['name']}")
+            error = True
+            response.set_data(json.dumps({"success": success, "error": error}))
         return response
 
     @app.route("/cmd", methods=["POST"])

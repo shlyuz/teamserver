@@ -8,7 +8,7 @@ from lib import teamserver
 from lib import logging
 from lib import banner
 from lib import configparse
-from lib import listener
+from lib import management
 from lib import common
 from lib.crypto import asymmetric
 
@@ -70,7 +70,7 @@ class ShlyuzTeamserver(object):
 
         # Starts the listener socket
         self.logging.log("Starting Shlyuz teamserver listener socket", level="debug", source="teamserver_init")
-        self.listener_thread = listener.start_management_socket(self)
+        self.listener_thread = management.start_management_socket(self)
         self.logging.log("Started Shlyuz teamserver listener socket", level="debug", source="teamserver_init")
 
         self.logging.log("Starting Shlyuz teamserver flask thread", level="debug")
