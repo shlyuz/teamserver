@@ -24,6 +24,8 @@ async def handle_client(reader, writer, teamserver):
         if isinstance(uncooked_frame, dict):
             reply_frame = frame_orchestrator.determine_destination(uncooked_frame, teamserver)
             if reply_frame is None:
+                writer.write(b'')
+                await writer.drain()
                 raise ConnectionResetError
         else:
             pass

