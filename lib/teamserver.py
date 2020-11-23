@@ -3,6 +3,7 @@ import asyncio
 import flask
 import json
 import copy
+from time import time
 
 from lib import networking
 from lib import instructions
@@ -165,6 +166,10 @@ class Teamserver(object):
                 # TODO: Verify that the command exists in the command library
                 #   * If not, return an error
                 #   * If yes, continue to generate the instruction frame
+                #   * Verify whether implant exists in manifest
+                data['history'] = []
+                event_history = {"timestamp": time(), "event": "ISSUED", "component": "server"}
+                data['history'].append(event_history)
                 instruction_frame = instructions.create_instruction_frame(data)
                 teamserver.logging.log(f"{username}: {data['cmd']} | component_id: {data['component_id']}"
                                        f" | txid: {instruction_frame['txid']}",

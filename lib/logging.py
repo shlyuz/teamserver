@@ -39,6 +39,9 @@ class Logging(object):
             log_level = logging.INFO
         if level.lower() == 'debug':
             log_level = logging.DEBUG
+        else:
+            # Default to INFO
+            log_level = logging.INFO
 
         if source:
             logging.log(log_level, msg=f"{time.strftime('%Y/%m/%d %H:%M:%S', time.gmtime())} [{source.upper()}]: {msg}")
