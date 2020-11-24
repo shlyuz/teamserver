@@ -5,7 +5,7 @@ import json
 import copy
 from time import time
 
-from lib import listener
+from lib import management
 from lib import instructions
 
 loop = asyncio.get_event_loop()
@@ -165,14 +165,14 @@ class Teamserver(object):
                 data = flask.request.get_json(force=True)
                 teamserver.logging.log(f"{username}: getting output for cmd {data['txid']}",
                                        level="debug", source=f"{teamserver.teamserver.info['name']}")
-                cmd_index = listener._get_cmd_sent_index(teamserver, data['txid'])
+                cmd_index = management._get_cmd_sent_index(teamserver, data['txid'])
                 if cmd_index is None:
-                    cmd_index = listener._get_cmd_queue_index(teamserver, data['txid'])
-                    response_data = teamserver.cmd_queue_index(teamserver, data['txid'])
+                    cmd_index = management._get_cmd_queue_index(teamserver, data['txid'])
+                    response_data = teamserver.cmd_queue[cmd_index]
                     success = True
                     response.set_data(json.dumps({"success": success, "data": response_data}))
                 else:
-                    response_data = teamserver.cmd_queue_index(teamserver, data['txid'])
+                    response_data = teamserver.cmd_sent[cmd_index]
                     success = True
                     response.set_data(json.dumps({"success": success, "data": response_data}))
                 if response_data is None:
