@@ -42,6 +42,7 @@ def lp_init(frame, teamserver):
             "args": [{"tpk": teamserver.initial_public_key._public_key}],
             "txid": frame['txid']}
     instruction_frame = instructions.create_instruction_frame(data)
+    # TODO: Encrypt this frame
     reply_frame = instruction_frame
     return reply_frame
 
@@ -72,6 +73,8 @@ def lp_process_manifest(frame, teamserver):
     # TODO: Make sure lp isn't already configured, update it if it is
     listening_post_manifest = next(item for item in frame['args'] if item["component_id"] == frame['component_id'])
     listening_post_manifest['lpk'] = frame['args'][1]['lpk']
+    # TODO: Generate a new key and rotate it
+    listening_post_manifest['tpk'] = teamserver.initial_private_key._private_key
     # TODO: Check if implants are already in manifest
     # TODO: Check if lp even has implants, handle that case
     for implant in listening_post_manifest['implants']:

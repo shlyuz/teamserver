@@ -87,7 +87,7 @@ class Teamserver(object):
         res.set_data(json.dumps(response))
         return res
 
-    @app.route("/get-stats", methods=["GET"])
+    @app.route("/get_stats", methods=["GET"])
     def teamserver_get_stats():
         """
         REQUIRES-LOGIN: Get the stats of the teamserver. Basically just listening post manifests and implant manifests
@@ -112,6 +112,7 @@ class Teamserver(object):
                     for listening_post in teamserver.listeners:
                         rcpt_listener = copy.copy(listening_post)
                         rcpt_listener['lpk'] = str(rcpt_listener['lpk'])
+                        rcpt_listener['tpk'] = str(rcpt_listener['tpk'])
                         del rcpt_listener['implants']
                         listeners.append(rcpt_listener)
                 if len(teamserver.implants) > 0:
