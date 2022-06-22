@@ -62,7 +62,7 @@ teamserver_config.set("teamserver", "server_header", "Shlyuz")
 teamserver_config.set("teamserver", "init_signature", init_signature)
 teamserver_config.add_section("crypto")
 teamserver_config.set("crypto", "rc6_key", rc6_key)
-teamserver_config.set("crypto", "xor_key", xor_key)
+teamserver_config.set("crypto", "xor_key", hex(xor_key))
 teamserver_config.set("crypto", "private_key", teamserver_private_key)
 teamserver_config.add_section(f"listening_post_{listening_post_id}")
 teamserver_config.set(f"listening_post_{listening_post_id}", "identifier", listening_post_id)
@@ -85,7 +85,7 @@ listening_post_config.add_section("crypto")
 listening_post_config.set("crypto", "sym_key", rc6_key)
 listening_post_config.set("crypto", "private_key", listening_post_private_key)
 listening_post_config.set("crypto", "tk_pk", teamserver_private_key.public_key)
-listening_post_config.set("crypto", "xor_key", xor_key)
+listening_post_config.set("crypto", "xor_key", hex(xor_key))
 
 # Write unencrypted configuration
 with open(f"setup_configs/listening_post/{listening_post_id}/shlyuz.conf", "w+") as lp_config_file:
@@ -101,7 +101,7 @@ implant_config.set("vzhivlyat", "init_signature", init_signature)
 implant_config.add_section("crypto")
 implant_config.set("crypto", "lp_pk", listening_post_private_key.public_key)
 implant_config.set("crypto", "sym_key", rc6_key)
-implant_config.set("crypto", "xor_key", xor_key)
+implant_config.set("crypto", "xor_key", hex(xor_key))
 implant_config.set("crypto", "priv_key", implant_private_key)
 
 # Write unencrypted configuration
@@ -112,6 +112,7 @@ with open(f"setup_configs/implant/{implant_id}/shlyuz.conf.unencrypted", "w+") a
 implant_config_encryption_key = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 print("!!!!! WRITE THIS DOWN SOMEWHERE !!!!!")
 print(f"Configuration encryption key: {lib.crypto.xor.single_byte_xor(implant_config_encryption_key.encode('utf-8'), config_xor_key)}")
+print("!!!!! !!!!!!!!!!!!!!!!!!!!!!!!! !!!!!\n")
 
 with open(f"setup_configs/implant/{implant_id}/shlyuz.conf.unencrypted", "rb+") as unencrypted_implant_config_file:
     with open(f"setup_configs/implant/{implant_id}/shlyuz.conf", "wb+") as implant_config_file:
@@ -145,6 +146,6 @@ print(f"[task_check_time]: {task_check_time}")
 print(f"[vzhivlyat][transport_name]: {transport_name}")
 print(f"[vzhivlyat][init_signature]: {init_signature}")
 print(f"[crypto][sym_key]: {rc6_key}")
-print(f"[crypto][xor_key]: {xor_key}")
+print(f"[crypto][xor_key]: {hex(xor_key)}")
 print(f"Configuration encryption key: {lib.crypto.xor.single_byte_xor(implant_config_encryption_key.encode('utf-8'), config_xor_key)}")
 
