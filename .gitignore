@@ -37,3 +37,5 @@ config/shlyuz.conf
 
 # Removing apple bullshit
 .DS_Store
+
+setup_configs/
