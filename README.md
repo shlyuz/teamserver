@@ -63,7 +63,7 @@ This will create the following directory structure:
     └──  shlyuz.conf
 ```
 
-You should use the appropriate `shlyuz.conf` configuration for each component and place the configuration in its relevant location. An unencrypted (`shlyuz.conf.unencrypted`) and encrypted configuration is provided for the implant. The encrypted configuration is what the implant code is anticipating. Should you wish to modify the the implant configuration, you will have to ensure that you constuct an encrypted version in the same manner.
+You should use the appropriate `shlyuz.conf` configuration for each component and place the configuration in its relevant location. An unencrypted (`shlyuz.conf.unencrypted`) and encrypted configuration is provided for the implant. The encrypted configuration is what the implant code is anticipating. Should you wish to modify the implant configuration, you will have to ensure that you constuct an encrypted version in the same manner.
 
 For the most part, this configuration should work with the provided [tests](https://github.com/shlyuz/tests) repo, allowing interaction with the temserver, but will require some modification to work correctly. This is left as an exercise to the reader.
 
