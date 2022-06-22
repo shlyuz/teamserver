@@ -72,6 +72,7 @@ teamserver_config.set(f"listening_post_{listening_post_id}", "pubkey", listening
 with open(f"setup_configs/teamserver/shlyuz.conf", "w+") as ts_config_file:
     teamserver_config.write(ts_config_file)
 
+# TODO: Take in LP http_addr, http_port
 
 listening_post_config = configparser.RawConfigParser()
 listening_post_config.add_section("lp")
@@ -79,7 +80,7 @@ listening_post_config.set("lp", "component_id", listening_post_id)
 listening_post_config.set("lp", "init_signature", init_signature)
 listening_post_config.add_section(f"{transport_name}")
 listening_post_config.set(f"{transport_name}", "bind_addr", "0.0.0.0")  # TODO: Changeme
-listening_post_config.set(f"{transport_name}", "bind_port", 8084)
+listening_post_config.set(f"{transport_name}", "bind_port", 8084)  # TODO: Changeme
 listening_post_config.add_section("crypto")
 listening_post_config.set("crypto", "sym_key", rc6_key)
 listening_post_config.set("crypto", "private_key", listening_post_private_key)
@@ -90,14 +91,6 @@ listening_post_config.set("crypto", "xor_key", xor_key)
 with open(f"setup_configs/listening_post/{listening_post_id}/shlyuz.conf", "w+") as lp_config_file:
     listening_post_config.write(lp_config_file)
 
-
-print(f"Configuration:")
-print(f"[vzhivlyat][id]: {implant_id}")
-print(f"[task_check_time]: {task_check_time}")
-print(f"[vzhivlyat][transport_name]: {transport_name}")
-print(f"[vzhivlyat][init_signature]: {init_signature}")
-print(f"[crypto][sym_key]: {rc6_key}")
-print(f"[crypto][xor_key]: {xor_key}")
 
 implant_config = configparser.RawConfigParser()
 implant_config.add_section("vzhivlyat")
